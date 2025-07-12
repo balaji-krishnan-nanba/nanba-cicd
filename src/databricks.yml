@@ -1,0 +1,60 @@
+bundle:
+  name: nanba-cicd-dataplatform
+
+include:
+  - resources/*.yml
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: ${var.databricks_dev_host}
+    resources:
+      jobs:
+        validation_job:
+          name: ${bundle.name}-validation-${bundle.target}
+          tasks:
+            - task_key: validation
+              notebook_task:
+                notebook_path: ./notebooks/validation.py
+              existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+
+  test:
+    mode: production
+    workspace:
+      host: ${var.databricks_test_host}
+    resources:
+      jobs:
+        test_job:
+          name: ${bundle.name}-test-${bundle.target}
+          tasks:
+            - task_key: integration_tests
+              notebook_task:
+                notebook_path: ./notebooks/integration_tests.py
+              existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+
+  prod:
+    mode: production
+    workspace:
+      host: ${var.databricks_prod_host}
+    resources:
+      jobs:
+        smoke_test_job:
+          name: ${bundle.name}-smoke-test-${bundle.target}
+          tasks:
+            - task_key: smoke_tests
+              notebook_task:
+                notebook_path: ./notebooks/smoke_tests.py
+              existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+
+variables:
+  databricks_dev_host:
+    default: "https://your-dev-workspace.cloud.databricks.com"
+  databricks_test_host:
+    default: "https://your-test-workspace.cloud.databricks.com"
+  databricks_prod_host:
+    default: "https://your-prod-workspace.cloud.databricks.com"

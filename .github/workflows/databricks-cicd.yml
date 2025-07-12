@@ -43,12 +43,31 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           echo "/home/runner/.databricks/bin" >> $GITHUB_PATH
 
+      - name: Debug authentication
+        run: |
+          echo "Checking if secrets are set..."
+          echo "DATABRICKS_DEV_HOST is set: ${{ secrets.DATABRICKS_DEV_HOST != '' }}"
+          echo "DATABRICKS_DEV_TOKEN is set: ${{ secrets.DATABRICKS_DEV_TOKEN != '' }}"
+          
       - name: Validate bundle configuration
         working-directory: src
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
         run: |
+          # Debug: Check if environment variables are set
+          if [ -z "$DATABRICKS_HOST" ]; then
+            echo "ERROR: DATABRICKS_HOST is not set!"
+            echo "Please add DATABRICKS_DEV_HOST secret to your repository"
+            exit 1
+          fi
+          if [ -z "$DATABRICKS_TOKEN" ]; then
+            echo "ERROR: DATABRICKS_TOKEN is not set!"
+            echo "Please add DATABRICKS_DEV_TOKEN secret to your repository"
+            exit 1
+          fi
+          
+          echo "Host is configured: ${DATABRICKS_HOST}"
           databricks bundle validate --target dev
 
   deploy-dev:

@@ -18,7 +18,7 @@ targets:
           tasks:
             - task_key: validation
               notebook_task:
-                notebook_path: ./notebooks/validation.py
+                notebook_path: notebooks/validation.py
               existing_cluster_id: ${resources.clusters.interactive_cluster.id}
 
   test:
@@ -30,7 +30,7 @@ targets:
           tasks:
             - task_key: integration_tests
               notebook_task:
-                notebook_path: ./notebooks/integration_tests.py
+                notebook_path: notebooks/integration_tests.py
               existing_cluster_id: ${resources.clusters.interactive_cluster.id}
 
   prod:
@@ -42,6 +42,6 @@ targets:
           tasks:
             - task_key: smoke_tests
               notebook_task:
-                notebook_path: ./notebooks/smoke_tests.py
+                notebook_path: notebooks/smoke_tests.py
               existing_cluster_id: ${resources.clusters.interactive_cluster.id}
 

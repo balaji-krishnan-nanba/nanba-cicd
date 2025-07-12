@@ -6,7 +6,7 @@ resources:
         - task_key: extract_data
           existing_cluster_id: ${resources.clusters.interactive_cluster.id}
           notebook_task:
-            notebook_path: ./notebooks/extract_data.py
+            notebook_path: notebooks/extract_data.py
           timeout_seconds: 3600
         
         - task_key: transform_data
@@ -14,7 +14,7 @@ resources:
             - task_key: extract_data
           existing_cluster_id: ${resources.clusters.interactive_cluster.id}
           notebook_task:
-            notebook_path: ./notebooks/transform_data.py
+            notebook_path: notebooks/transform_data.py
           timeout_seconds: 3600
         
         - task_key: load_data
@@ -22,7 +22,7 @@ resources:
             - task_key: transform_data
           existing_cluster_id: ${resources.clusters.interactive_cluster.id}
           notebook_task:
-            notebook_path: ./notebooks/load_data.py
+            notebook_path: notebooks/load_data.py
           timeout_seconds: 3600
 
     monitoring_job:
@@ -34,4 +34,4 @@ resources:
         - task_key: data_quality_check
           existing_cluster_id: ${resources.clusters.interactive_cluster.id}
           notebook_task:
-            notebook_path: ./notebooks/data_quality_monitoring.py
+            notebook_path: notebooks/data_quality_monitoring.py

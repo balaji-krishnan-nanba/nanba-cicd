@@ -11,8 +11,6 @@ targets:
   dev:
     mode: development
     default: true
-    workspace:
-      host: ${var.databricks_dev_host}
     resources:
       jobs:
         validation_job:
@@ -25,8 +23,6 @@ targets:
 
   test:
     mode: production
-    workspace:
-      host: ${var.databricks_test_host}
     resources:
       jobs:
         test_job:
@@ -39,8 +35,6 @@ targets:
 
   prod:
     mode: production
-    workspace:
-      host: ${var.databricks_prod_host}
     resources:
       jobs:
         smoke_test_job:
@@ -51,10 +45,3 @@ targets:
                 notebook_path: ./notebooks/smoke_tests.py
               existing_cluster_id: ${resources.clusters.interactive_cluster.id}
 
-variables:
-  databricks_dev_host:
-    default: "https://your-dev-workspace.cloud.databricks.com"
-  databricks_test_host:
-    default: "https://your-test-workspace.cloud.databricks.com"
-  databricks_prod_host:
-    default: "https://your-prod-workspace.cloud.databricks.com"

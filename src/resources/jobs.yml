@@ -1,0 +1,37 @@
+resources:
+  jobs:
+    data_processing_job:
+      name: ${bundle.name}-data-processing-${bundle.target}
+      tasks:
+        - task_key: extract_data
+          existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+          notebook_task:
+            notebook_path: ../notebooks/extract_data.py
+          timeout_seconds: 3600
+        
+        - task_key: transform_data
+          depends_on:
+            - task_key: extract_data
+          existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+          notebook_task:
+            notebook_path: ../notebooks/transform_data.py
+          timeout_seconds: 3600
+        
+        - task_key: load_data
+          depends_on:
+            - task_key: transform_data
+          existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+          notebook_task:
+            notebook_path: ../notebooks/load_data.py
+          timeout_seconds: 3600
+
+    monitoring_job:
+      name: ${bundle.name}-monitoring-${bundle.target}
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?"
+        timezone_id: "UTC"
+      tasks:
+        - task_key: data_quality_check
+          existing_cluster_id: ${resources.clusters.interactive_cluster.id}
+          notebook_task:
+            notebook_path: ../notebooks/data_quality_monitoring.py

@@ -1,0 +1,16 @@
+# Legacy CI/CD Configuration File
+# 
+# This file has been replaced by the new Databricks Asset Bundle CI/CD pipeline.
+# 
+# New structure:
+# - Main workflow: devops/workflows/databricks-cicd.yml
+# - Source code: src/
+# - Documentation: devops/setup-instructions.md
+#
+# The new pipeline provides:
+# - Databricks Asset Bundle integration
+# - Multi-environment deployment (dev/test/prod)
+# - Manual approval gates for test and production
+# - Comprehensive testing at each stage
+#
+# Please refer to devops/setup-instructions.md for setup and usage instructions.

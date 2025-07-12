@@ -23,9 +23,7 @@ on:
           - test
           - prod
 
-env:
-  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+# Global env vars removed - set per job instead
 
 jobs:
   validate:
@@ -47,6 +45,9 @@ jobs:
 
       - name: Validate bundle configuration
         working-directory: src
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
         run: |
           databricks bundle validate --target dev
 

@@ -23,30 +23,11 @@ on:
           - test
           - prod
 
-# Global env vars removed - set per job instead
 
 jobs:
-  # Skip validation if secrets are not available
-  check-secrets:
-    name: Check Secrets Availability
-    runs-on: ubuntu-latest
-    outputs:
-      secrets-available: ${{ steps.check.outputs.available }}
-    steps:
-      - id: check
-        run: |
-          if [[ "${{ secrets.DATABRICKS_DEV_HOST }}" != "" ]] && [[ "${{ secrets.DATABRICKS_DEV_TOKEN }}" != "" ]]; then
-            echo "available=true" >> $GITHUB_OUTPUT
-          else
-            echo "available=false" >> $GITHUB_OUTPUT
-            echo "::warning::Databricks secrets not available. Please add DATABRICKS_DEV_HOST and DATABRICKS_DEV_TOKEN as repository secrets."
-          fi
-
   validate:
     name: Validate Databricks Bundle
     runs-on: ubuntu-latest
-    needs: check-secrets
-    if: needs.check-secrets.outputs.secrets-available == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,34 +42,12 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           echo "/home/runner/.databricks/bin" >> $GITHUB_PATH
 
-      - name: Debug authentication
-        run: |
-          echo "Checking if secrets are set..."
-          echo "Event name: ${{ github.event_name }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "DATABRICKS_DEV_HOST is set: ${{ secrets.DATABRICKS_DEV_HOST != '' }}"
-          echo "DATABRICKS_DEV_TOKEN is set: ${{ secrets.DATABRICKS_DEV_TOKEN != '' }}"
-          echo "Environment: ${{ job.environment }}"
-          
       - name: Validate bundle configuration
         working-directory: src
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
         run: |
-          # Debug: Check if environment variables are set
-          if [ -z "$DATABRICKS_HOST" ]; then
-            echo "ERROR: DATABRICKS_HOST is not set!"
-            echo "Please add DATABRICKS_DEV_HOST secret to your repository"
-            exit 1
-          fi
-          if [ -z "$DATABRICKS_TOKEN" ]; then
-            echo "ERROR: DATABRICKS_TOKEN is not set!"
-            echo "Please add DATABRICKS_DEV_TOKEN secret to your repository"
-            exit 1
-          fi
-          
-          echo "Host is configured: ${DATABRICKS_HOST}"
           databricks bundle validate --target dev
 
   deploy-dev:

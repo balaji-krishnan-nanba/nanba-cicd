@@ -1,5 +1,5 @@
 bundle:
-  name: nanba-cicd-dataplatform
+  name: nanba-cicd
 
 include:
   - resources/*.yml

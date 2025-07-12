@@ -42,6 +42,16 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           echo "/home/runner/.databricks/bin" >> $GITHUB_PATH
 
+      - name: Debug file structure
+        working-directory: src
+        run: |
+          echo "Current directory structure:"
+          find . -type f -name "*.py" | head -20
+          echo "Contents of resources/:"
+          ls -la resources/
+          echo "Contents of notebooks/:"
+          ls -la notebooks/
+          
       - name: Validate bundle configuration
         working-directory: src
         env:

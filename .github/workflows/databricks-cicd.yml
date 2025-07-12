@@ -42,16 +42,6 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           echo "/home/runner/.databricks/bin" >> $GITHUB_PATH
 
-      - name: Debug file structure
-        working-directory: src
-        run: |
-          echo "Current directory structure:"
-          find . -type f -name "*.py" | head -20
-          echo "Contents of resources/:"
-          ls -la resources/
-          echo "Contents of notebooks/:"
-          ls -la notebooks/
-          
       - name: Validate bundle configuration
         working-directory: src
         env:
@@ -105,7 +95,7 @@ jobs:
   deploy-test:
     name: Deploy to Test
     runs-on: ubuntu-latest
-    needs: deploy-dev
+    needs: validate
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && 
@@ -144,7 +134,7 @@ jobs:
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-test
+    needs: validate
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && 

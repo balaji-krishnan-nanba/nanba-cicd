@@ -23,6 +23,8 @@ targets:
 
   test:
     mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     resources:
       jobs:
         test_job:
@@ -35,6 +37,8 @@ targets:
 
   prod:
     mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     resources:
       jobs:
         smoke_test_job:

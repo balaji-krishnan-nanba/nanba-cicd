@@ -81,6 +81,35 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - **Approval**: 2 reviewers required + 5 minute wait timer
 - **Dependencies**: Successful test deployment
 
+## Workspace Path Configuration
+
+### Environment-Specific Deployment Paths
+
+This CI/CD pipeline uses different deployment strategies for each environment:
+
+#### **Development Environment**
+- **Path**: `/Workspace/Users/${workspace.current_user.userName}/.bundle/nanba-cicd/dev`
+- **Strategy**: User-specific paths for development isolation
+- **Use Case**: Individual developer testing and experimentation
+
+#### **Test Environment** 
+- **Path**: `/Workspace/Shared/.bundle/nanba-cicd/test`
+- **Strategy**: Shared workspace location for team collaboration
+- **Use Case**: Integration testing and team validation
+
+#### **Production Environment**
+- **Path**: `/Workspace/Shared/.bundle/nanba-cicd/prod`
+- **Strategy**: Shared workspace location for production stability
+- **Use Case**: Production deployments with team access and audit trails
+
+### Best Practices for Production
+
+1. **Shared Locations**: Test and production use `/Workspace/Shared/` to avoid dependency on individual user accounts
+2. **Service Principals**: Recommended for test/prod authentication instead of personal tokens
+3. **Team Access**: Multiple team members can manage and troubleshoot shared deployments
+4. **Audit Trail**: Centralized location for better monitoring and compliance
+5. **Disaster Recovery**: Reduced single points of failure
+
 ## Project Structure
 
 ```
@@ -120,6 +149,55 @@ databricks bundle deploy --target dev
 cd src
 databricks bundle run --target dev validation_job
 ```
+
+## Service Principal Setup (Recommended for Production)
+
+### Why Use Service Principals?
+
+For test and production environments, using service principals instead of personal access tokens provides:
+- **Security**: Dedicated authentication without personal account dependencies
+- **Team Access**: Multiple team members can manage the same service principal
+- **Audit Trail**: Clear tracking of automated vs. manual activities
+- **Compliance**: Better alignment with enterprise security policies
+
+### Creating Service Principals
+
+#### **Step 1: Create Service Principal in Databricks**
+1. Go to your Databricks workspace → **Settings** → **Identity and access** → **Service principals**
+2. Click **Add service principal**
+3. Name: `nanba-cicd-test-sp` (for test) or `nanba-cicd-prod-sp` (for production)
+4. Click **Add**
+
+#### **Step 2: Generate Client Secret**
+1. Click on the created service principal
+2. Go to **Secrets** tab
+3. Click **Generate secret**
+4. **Copy the secret immediately** (you won't see it again!)
+
+#### **Step 3: Assign Permissions**
+1. **Workspace Access**: Add service principal to the workspace
+2. **Cluster Permissions**: Grant "Can Restart" permissions
+3. **Storage Access**: Configure access to data sources if needed
+4. **Unity Catalog**: Grant appropriate catalog/schema permissions
+
+#### **Step 4: Update GitHub Secrets**
+Replace personal tokens with service principal credentials:
+
+**For Test Environment:**
+- `DATABRICKS_TEST_HOST`: Your test workspace URL
+- `DATABRICKS_TEST_TOKEN`: Service principal secret
+
+**For Production Environment:**
+- `DATABRICKS_PROD_HOST`: Your production workspace URL  
+- `DATABRICKS_PROD_TOKEN`: Service principal secret
+
+### Service Principal Best Practices
+
+1. **Separate Service Principals**: Use different service principals for test and prod
+2. **Minimal Permissions**: Grant only the permissions needed for CI/CD operations
+3. **Regular Rotation**: Rotate service principal secrets periodically
+4. **Monitoring**: Set up alerts for service principal usage
+5. **Documentation**: Document service principal purposes and permissions
 
 ## Customization
 

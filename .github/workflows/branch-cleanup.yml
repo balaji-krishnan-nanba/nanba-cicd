@@ -2,8 +2,8 @@ name: Branch Lifespan Enforcement
 
 on:
   schedule:
-    - cron: '0 9 * * 1-5'  # Run weekdays at 9 AM UTC
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
 
 jobs:
   check-branch-age:
@@ -13,32 +13,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history
-          
-      - name: Check All Branch Ages
+          fetch-depth: 0
+
+      - name: List Stale Branches
         run: |
-          echo "🔍 Checking branch ages..."
-          
-          # Get all remote branches except main
+          echo "Checking for stale branches..."
           git branch -r --format='%(refname:short)' | grep -v 'origin/main' | grep -v 'origin/HEAD' | while read branch; do
-            # Remove origin/ prefix
             branch_name=${branch#origin/}
-            
-            # Get last commit date of the branch
             last_commit=$(git log -1 --format=%ct origin/$branch_name 2>/dev/null || echo "0")
-            
             if [ "$last_commit" != "0" ]; then
-              # Calculate days old
               current_time=$(date +%s)
               days_old=$(( (current_time - last_commit) / 86400 ))
-              
-              echo "📅 Branch: $branch_name - $days_old days old"
-              
-              # Check against thresholds
               if [ $days_old -gt 7 ]; then
-                echo "🚨 WARNING: Branch '$branch_name' is $days_old days old - Consider cleanup!"
+                echo "STALE: $branch_name is $days_old days old"
               elif [ $days_old -gt 3 ]; then
-                echo "⚠️  NOTICE: Branch '$branch_name' is $days_old days old - Consider merging soon!"
+                echo "WARNING: $branch_name is $days_old days old"
               fi
             fi
           done
@@ -47,54 +36,11 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { execSync } = require('child_process');
-            
-            // Get stale branches
-            const staleBranches = execSync(`
-              git branch -r --format='%(refname:short)' | grep -v 'origin/main' | grep -v 'origin/HEAD' | while read branch; do
-                branch_name=\${branch#origin/}
-                last_commit=\$(git log -1 --format=%ct origin/\$branch_name 2>/dev/null || echo "0")
-                if [ "\$last_commit" != "0" ]; then
-                  current_time=\$(date +%s)
-                  days_old=\$(( (current_time - last_commit) / 86400 ))
-                  if [ \$days_old -gt 7 ]; then
-                    echo "\$branch_name:\$days_old"
-                  fi
-                fi
-              done
-            `).toString().trim();
-            
-            if (staleBranches) {
-              const branches = staleBranches.split('\n').map(line => {
-                const [name, days] = line.split(':');
-                return `- \`${name}\` (${days} days old)`;
-              }).join('\n');
-              
-              const issueBody = `## 🧹 Stale Branch Cleanup Required
-              
-The following branches are older than 7 days and should be reviewed:
-
-${branches}
-
-### Action Required:
-- [ ] Review each branch and determine if it should be merged or deleted
-- [ ] Contact branch owners if needed
-- [ ] Clean up merged branches
-
-### Branch Lifecycle Guidelines:
-- **feature/**, **chore/**: Should be merged within 3-5 days
-- **fix/**: Should be merged within 1-2 days (urgent)
-- **Branches > 7 days**: Considered stale and flagged for cleanup
-
-### Automation:
-This issue was created automatically by the branch cleanup workflow.`;
-
-              // Create or update issue
-              github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `🧹 Stale Branches Cleanup - ${new Date().toISOString().split('T')[0]}`,
-                body: issueBody,
-                labels: ['maintenance', 'branch-cleanup', 'automated']
-              });
-            }
+            // Simple approach - just create an issue if there are old branches
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Branch Cleanup Required',
+              body: 'Some branches may be stale. Please review branch ages and clean up as needed.',
+              labels: ['maintenance']
+            });

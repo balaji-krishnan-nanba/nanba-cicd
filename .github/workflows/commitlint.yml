@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for commitlint
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,76 +33,34 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
-      - name: Comment on PR with commit guidelines (on failure)
+      - name: Comment on PR with guidelines (on failure)
         if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const { owner, repo, number } = context.issue;
-            
-            const comment = `## ❌ Commit Message Validation Failed
-            
-Your commit messages don't follow our conventional commit standards. Please update your commit messages to follow this format:
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Commit Message Validation Failed
 
-\`\`\`
-<type>[optional scope]: <description>
-\`\`\`
+Your commit messages don't follow conventional commit standards.
+
+### Required Format:
+\`<type>: <description>\`
 
 ### Valid Types:
-- **feat**: A new feature (triggers minor version)
-- **fix**: A bug fix (triggers patch version)  
-- **docs**: Documentation only changes (no version)
-- **style**: Code style changes (no version)
-- **refactor**: Code refactoring (triggers patch version)
-- **perf**: Performance improvements (triggers patch version)
-- **test**: Adding or updating tests (no version)
-- **chore**: Maintenance tasks (no version)
-- **ci**: CI/CD changes (no version)
-- **build**: Build system changes (no version)
+- feat: New feature
+- fix: Bug fix  
+- docs: Documentation
+- style: Code style
+- refactor: Code refactoring
+- test: Tests
+- chore: Maintenance
 
 ### Examples:
-\`\`\`bash
-feat: add customer data pipeline
-fix: resolve data validation error
-docs: update API documentation
-feat!: change data schema format  # Breaking change
-\`\`\`
+\`feat: add data pipeline\`
+\`fix: resolve validation error\`
 
-### To Fix:
-1. Rewrite your commit messages using \`git rebase -i\`
-2. Or squash your commits into a single commit with proper format
-3. Force push your updated branch
-
-📖 **Full Guide**: [devops/semantic-versioning-guide.md](https://github.com/${owner}/${repo}/blob/main/devops/semantic-versioning-guide.md)
-
-This check must pass before your PR can be merged.`;
-
-            // Check if we already commented
-            const comments = await github.rest.issues.listComments({
-              owner,
-              repo,
-              issue_number: number
+Please update your commit messages and force push.`
             });
-            
-            const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('Commit Message Validation Failed')
-            );
-            
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: botComment.id,
-                body: comment
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: number,
-                body: comment
-              });
-            }

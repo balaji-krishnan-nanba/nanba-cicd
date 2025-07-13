@@ -267,12 +267,6 @@ docs: update API documentation             # No release
 
 For complete guidelines, see [`devops/semantic-versioning-guide.md`](semantic-versioning-guide.md).
 
-### Commit Message Enforcement
-A **commitlint workflow** automatically validates all commit messages:
-- ✅ Valid: `feat: add data pipeline`, `fix: resolve validation error`
-- ❌ Invalid: `updated code`, `bug fix`, `changes`
-
-**Failed commits will block PR merges** when branch protection is enabled.
 
 ## Branch Protection Setup (Recommended)
 
@@ -285,7 +279,6 @@ To enforce commit message standards and prevent invalid commits from reaching ma
 
 ### Step 2: Required Status Checks
 Enable these required checks before merging:
-- ✅ **Validate Commit Messages** (from commitlint workflow)
 - ✅ **Validate Databricks Bundle** (from CI/CD workflow)
 - ✅ **Deploy to Development** (from CI/CD workflow)
 
@@ -298,10 +291,8 @@ Enable these required checks before merging:
 
 ### Step 4: Result
 With branch protection enabled:
-- Invalid commit messages will **fail the commitlint check**
-- PRs cannot be merged until **all commits follow conventional format**
-- Automatic helpful comments guide developers to fix their commits
-- Semantic versioning works reliably with proper commit messages
+- PRs require review and status checks to pass before merging
+- Clear commit messages improve project tracking and collaboration
 
 ## Customization
 

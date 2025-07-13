@@ -58,9 +58,9 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - `DATABRICKS_PROD_HOST`: `https://your-prod-workspace.cloud.databricks.com`
 - `DATABRICKS_PROD_TOKEN`: Your prod access token
 
-## Workflow Triggers
+## Workflow Triggers - Sequential Deployment Flow
 
-### Automatic Deployment to Dev
+### 1. Automatic Deployment to Dev
 - **Trigger**: PR opened/updated from branches matching:
   - `feature/*`
   - `fix/*` 
@@ -68,26 +68,37 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - **Target**: `main` branch
 - **Environment**: `dev`
 - **Approval**: None required
+- **Purpose**: Validates changes before merge
 
-### Automatic Deployment to Test (with Approval)
-- **Trigger**: Automatic on push to `main` branch OR manual dispatch
+### 2. Automatic Deployment to Test
+- **Trigger**: Push to `main` branch (when PR is merged)
 - **Environment**: `test`
-- **Approval**: 1 reviewer required (must be approved before deployment)
+- **Approval**: 1 reviewer required
 - **Dependencies**: Successful bundle validation
+- **Purpose**: Integration testing in shared environment
 
-### Semantic Versioning and Tagging
-- **Trigger**: Automatic on push to `main` branch (after test deployment)
+### 3. Semantic Versioning and Tagging
+- **Trigger**: Automatic after successful test deployment
 - **Process**: Analyzes conventional commits since last release
 - **Output**: Creates semantic version tags (v1.0.0, v1.1.0, etc.)
-- **Dependencies**: Test deployment completion
+- **Dependencies**: Successful test deployment
 - **Documentation**: See `devops/semantic-versioning-guide.md`
 
-### Automatic Prod Deployment
+### 4. Automatic Prod Deployment
 - **Trigger**: Semantic version tag creation (v*.*.*)
 - **Environment**: `prod`
 - **Approval**: 2 reviewers required + 5 minute wait timer
-- **Dependencies**: Successful semantic release
+- **Dependencies**: Successful test deployment (enforced through workflow)
 - **Version Info**: Deployment includes Git tag, commit SHA, and version metadata
+
+### Sequential Flow Summary
+```
+PR (feature/fix/chore) → Dev Deploy → Merge to Main → Test Deploy → Semantic Release → Prod Deploy
+                         ↑                              ↑              ↑                ↑
+                    (auto, no approval)         (auto, 1 approval) (auto, no approval) (auto, 2 approvals)
+```
+
+This ensures each environment is deployed sequentially, with test success required before production deployment.
 
 ## Workspace Path Configuration
 

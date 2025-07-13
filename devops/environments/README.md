@@ -50,11 +50,21 @@ You need to create the following environments in your GitHub repository settings
 ```
 PR (feature/*, fix/*, chore/*) → main
                 ↓
-            Deploy to dev (automatic)
+        Deploy to dev (automatic)
                 ↓
          Merge to main branch
                 ↓
-    Deploy to test (requires 1 approval)
+    Deploy to test (automatic trigger, requires 1 approval)
                 ↓
-   Deploy to prod (requires 2 approvals + 5min wait)
+        Test deployment succeeds
+                ↓
+    Semantic Release (creates version tag)
+                ↓
+   Deploy to prod (automatic on tag, requires 2 approvals + 5min wait)
 ```
+
+**Key Points:**
+- Test deployment automatically triggers when PR is merged to main
+- Prod deployment depends on successful test deployment
+- Semantic versioning happens after test success
+- Sequential flow ensures quality gates at each stage

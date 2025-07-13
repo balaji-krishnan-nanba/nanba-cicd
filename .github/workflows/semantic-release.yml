@@ -1,9 +1,13 @@
-name: Semantic Release
+name: Semantic Release (Integrated)
+
+# This workflow has been integrated into databricks-cicd.yml
+# to ensure proper sequential deployment flow:
+# main → test → semantic-release → prod
+#
+# Keeping this file for reference and potential future separation
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only (automated flow is in main workflow)
 
 jobs:
   semantic-release:

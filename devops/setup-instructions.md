@@ -77,25 +77,18 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - **Dependencies**: Successful bundle validation
 - **Purpose**: Integration testing in shared environment
 
-### 3. Semantic Versioning and Tagging
-- **Trigger**: Automatic after successful test deployment
-- **Process**: Analyzes conventional commits since last release
-- **Output**: Creates semantic version tags (v1.0.0, v1.1.0, etc.)
-- **Dependencies**: Successful test deployment
-- **Documentation**: See `devops/semantic-versioning-guide.md`
-
-### 4. Automatic Prod Deployment
-- **Trigger**: Semantic version tag creation (v*.*.*)
+### 3. Manual Prod Deployment
+- **Trigger**: Manual workflow dispatch only
 - **Environment**: `prod`
 - **Approval**: 2 reviewers required + 5 minute wait timer
 - **Dependencies**: Successful test deployment (enforced through workflow)
-- **Version Info**: Deployment includes Git tag, commit SHA, and version metadata
+- **Version Info**: Deployment includes Git commit SHA and metadata
 
 ### Sequential Flow Summary
 ```
-PR (feature/fix/chore) → Dev Deploy → Merge to Main → Test Deploy → Semantic Release → Prod Deploy
-                         ↑                              ↑              ↑                ↑
-                    (auto, no approval)         (auto, 1 approval) (auto, no approval) (auto, 2 approvals)
+PR (feature/fix/chore) → Dev Deploy → Merge to Main → Test Deploy → Manual Prod Deploy
+                         ↑                              ↑              ↑
+                    (auto, no approval)         (auto, 1 approval) (manual, 2 approvals)
 ```
 
 This ensures each environment is deployed sequentially, with test success required before production deployment.

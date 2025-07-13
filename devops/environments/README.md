@@ -8,7 +8,6 @@ This document describes how to set up GitHub environments for manual approval ga
 - GitHub Actions workflows are in `.github/workflows/` (GitHub requirement)
 
 ## Required Environments
-
 You need to create the following environments in your GitHub repository settings:
 
 ### 1. dev Environment

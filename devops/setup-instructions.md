@@ -257,6 +257,12 @@ Enable these required checks before merging:
 - ✅ **Validate Databricks Bundle** (from CI/CD workflow)
 - ✅ **Deploy to Development** (from CI/CD workflow)
 
+### Step 2a: Automatic Reviewer Assignment
+The repository includes a `.github/CODEOWNERS` file that automatically assigns reviewers:
+- All PRs to main will automatically request review from designated code owners
+- Update the CODEOWNERS file with your team members' GitHub usernames
+- Enable "Require review from Code Owners" in branch protection settings
+
 ### Step 3: Additional Protections
 - ✅ **Require pull request reviews before merging**
 - ✅ **Dismiss stale pull request approvals when new commits are pushed**

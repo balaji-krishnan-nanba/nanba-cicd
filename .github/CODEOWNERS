@@ -1,0 +1,16 @@
+# Global code owners for nanba-cicd repository
+# These users will be automatically requested as reviewers for all PRs
+
+# All files - automatically assigns reviewers for any PR
+* @balaji-krishnan-nanba
+
+# Databricks configuration files - require data platform team review
+src/databricks.yml @balaji-krishnan-nanba
+src/resources/*.yml @balaji-krishnan-nanba
+
+# CI/CD pipeline files - require DevOps review
+.github/workflows/*.yml @balaji-krishnan-nanba
+devops/ @balaji-krishnan-nanba
+
+# Documentation changes
+*.md @balaji-krishnan-nanba

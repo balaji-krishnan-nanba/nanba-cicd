@@ -58,13 +58,10 @@ PR (feature/*, fix/*, chore/*) → main
                 ↓
         Test deployment succeeds
                 ↓
-    Semantic Release (creates version tag)
-                ↓
-   Deploy to prod (automatic on tag, requires 2 approvals + 5min wait)
+   Deploy to prod (manual trigger only, requires 2 approvals + 5min wait)
 ```
 
 **Key Points:**
 - Test deployment automatically triggers when PR is merged to main
-- Prod deployment depends on successful test deployment
-- Semantic versioning happens after test success
+- Prod deployment requires manual trigger and depends on successful test deployment
 - Sequential flow ensures quality gates at each stage

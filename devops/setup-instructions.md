@@ -241,36 +241,11 @@ Replace personal tokens with service principal credentials:
 4. **Monitoring**: Set up alerts for service principal usage
 5. **Documentation**: Document service principal purposes and permissions
 
-## Semantic Versioning and Commit Standards
-
-### Conventional Commits Required
-This pipeline uses **conventional commits** to automatically determine version numbers:
-
-- `feat:` → Minor version bump (v1.1.0)
-- `fix:` → Patch version bump (v1.0.1)  
-- `feat!:` or `BREAKING CHANGE:` → Major version bump (v2.0.0)
-- `docs:`, `test:`, `chore:` → No release
-
-### Examples
-```bash
-feat: add customer data pipeline          # v1.1.0
-fix: resolve data validation error        # v1.0.1
-feat!: change data schema format          # v2.0.0
-docs: update API documentation             # No release
-```
-
-### Version-Tagged Deployments
-- Prod deployments are **only triggered by semantic version tags**
-- Each prod deployment includes version metadata in job names
-- Git commit SHA and tag information is embedded in Databricks resources
-- Full traceability from code commit to prod deployment
-
-For complete guidelines, see [`devops/semantic-versioning-guide.md`](semantic-versioning-guide.md).
 
 
 ## Branch Protection Setup (Recommended)
 
-To enforce commit message standards and prevent invalid commits from reaching main:
+To ensure code quality and prevent untested code from reaching main:
 
 ### Step 1: Enable Branch Protection
 1. Go to repository **Settings** → **Branches**

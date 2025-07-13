@@ -97,7 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && 
        github.event.inputs.environment == 'test')
     environment: test
@@ -136,7 +135,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && 
        github.event.inputs.environment == 'prod')
     environment: production

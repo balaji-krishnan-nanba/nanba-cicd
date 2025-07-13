@@ -38,29 +38,23 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const commentBody = "## Commit Message Validation Failed\n\n" +
+              "Your commit messages don't follow conventional commit standards.\n\n" +
+              "### Required Format:\n" +
+              "`<type>: <description>`\n\n" +
+              "### Valid Types:\n" +
+              "- feat: New feature\n" +
+              "- fix: Bug fix\n" +
+              "- docs: Documentation\n" +
+              "- chore: Maintenance\n\n" +
+              "### Examples:\n" +
+              "`feat: add data pipeline`\n" +
+              "`fix: resolve validation error`\n\n" +
+              "Please update your commit messages and force push.";
+              
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Commit Message Validation Failed
-
-Your commit messages don't follow conventional commit standards.
-
-### Required Format:
-\`<type>: <description>\`
-
-### Valid Types:
-- feat: New feature
-- fix: Bug fix  
-- docs: Documentation
-- style: Code style
-- refactor: Code refactoring
-- test: Tests
-- chore: Maintenance
-
-### Examples:
-\`feat: add data pipeline\`
-\`fix: resolve validation error\`
-
-Please update your commit messages and force push.`
+              body: commentBody
             });

@@ -1,0 +1,89 @@
+name: Semantic Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  semantic-release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    needs: []  # Will be updated to depend on test deployment
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    outputs:
+      new-release-published: ${{ steps.semantic.outputs.new-release-published }}
+      new-release-version: ${{ steps.semantic.outputs.new-release-version }}
+      new-release-git-tag: ${{ steps.semantic.outputs.new-release-git-tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history required for semantic-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install --save-dev semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github
+
+      - name: Semantic Release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx semantic-release
+
+      - name: Output Release Info
+        if: steps.semantic.outputs.new-release-published == 'true'
+        run: |
+          echo "🎉 New release published!"
+          echo "Version: ${{ steps.semantic.outputs.new-release-version }}"
+          echo "Git Tag: ${{ steps.semantic.outputs.new-release-git-tag }}"
+          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.semantic.outputs.new-release-git-tag }}"
+
+  notify-release:
+    name: Notify New Release
+    runs-on: ubuntu-latest
+    needs: semantic-release
+    if: needs.semantic-release.outputs.new-release-published == 'true'
+    steps:
+      - name: Create Release Notification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const version = '${{ needs.semantic-release.outputs.new-release-version }}';
+            const tag = '${{ needs.semantic-release.outputs.new-release-git-tag }}';
+            
+            // Create an issue to notify about the new release
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: `🚀 New Release Available: ${tag}`,
+              body: `## New Release: ${tag}
+              
+A new version of the data platform has been released and is ready for production deployment.
+
+### Version Details
+- **Version**: ${version}
+- **Git Tag**: ${tag}
+- **Release Notes**: [View Release](https://github.com/${owner}/${repo}/releases/tag/${tag})
+
+### Next Steps
+- [ ] Review the release notes and changes
+- [ ] Trigger production deployment manually if approved
+- [ ] Monitor production deployment for any issues
+
+### Production Deployment
+Production deployment will automatically trigger from this tag with proper approvals.
+
+---
+*This release was automatically created by semantic-release based on conventional commits.*`,
+              labels: ['release', 'production-ready', 'automated']
+            });

@@ -1,0 +1,30 @@
+{
+  "name": "nanba-cicd-dataplatform",
+  "version": "0.0.0",
+  "description": "Databricks Data Platform CI/CD Pipeline with Asset Bundles",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/balaji-krishnan-nanba/nanba-cicd.git"
+  },
+  "keywords": [
+    "databricks",
+    "data-platform", 
+    "cicd",
+    "asset-bundles",
+    "github-actions"
+  ],
+  "author": "Balaji Krishnan Nanba",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "semantic-release": "^22.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^9.0.0",
+    "@semantic-release/commit-analyzer": "^11.0.0",
+    "@semantic-release/release-notes-generator": "^12.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

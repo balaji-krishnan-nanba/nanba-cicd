@@ -54,9 +54,9 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - `DATABRICKS_TEST_HOST`: `https://your-test-workspace.cloud.databricks.com`  
 - `DATABRICKS_TEST_TOKEN`: Your test access token
 
-**production environment:**
+**prod environment:**
 - `DATABRICKS_PROD_HOST`: `https://your-prod-workspace.cloud.databricks.com`
-- `DATABRICKS_PROD_TOKEN`: Your production access token
+- `DATABRICKS_PROD_TOKEN`: Your prod access token
 
 ## Workflow Triggers
 
@@ -69,17 +69,25 @@ This repository contains a complete CI/CD pipeline for Azure Databricks using Da
 - **Environment**: `dev`
 - **Approval**: None required
 
-### Manual Approval for Test
-- **Trigger**: Push to `main` branch OR manual dispatch
+### Automatic Deployment to Test (with Approval)
+- **Trigger**: Automatic on push to `main` branch OR manual dispatch
 - **Environment**: `test`
-- **Approval**: 1 reviewer required
-- **Dependencies**: Successful dev deployment
+- **Approval**: 1 reviewer required (must be approved before deployment)
+- **Dependencies**: Successful bundle validation
 
-### Manual Approval for Production  
-- **Trigger**: Push to `main` branch OR manual dispatch
-- **Environment**: `production`
+### Semantic Versioning and Tagging
+- **Trigger**: Automatic on push to `main` branch (after test deployment)
+- **Process**: Analyzes conventional commits since last release
+- **Output**: Creates semantic version tags (v1.0.0, v1.1.0, etc.)
+- **Dependencies**: Test deployment completion
+- **Documentation**: See `devops/semantic-versioning-guide.md`
+
+### Automatic Prod Deployment
+- **Trigger**: Semantic version tag creation (v*.*.*)
+- **Environment**: `prod`
 - **Approval**: 2 reviewers required + 5 minute wait timer
-- **Dependencies**: Successful test deployment
+- **Dependencies**: Successful semantic release
+- **Version Info**: Deployment includes Git tag, commit SHA, and version metadata
 
 ## Workspace Path Configuration
 
@@ -97,14 +105,14 @@ This CI/CD pipeline uses different deployment strategies for each environment:
 - **Strategy**: Shared workspace location for team collaboration
 - **Use Case**: Integration testing and team validation
 
-#### **Production Environment**
+#### **Prod Environment**
 - **Path**: `/Workspace/Shared/.bundle/nanba-cicd/prod`
-- **Strategy**: Shared workspace location for production stability
-- **Use Case**: Production deployments with team access and audit trails
+- **Strategy**: Shared workspace location for prod stability
+- **Use Case**: Prod deployments with team access and audit trails
 
-### Best Practices for Production
+### Best Practices for Prod
 
-1. **Shared Locations**: Test and production use `/Workspace/Shared/` to avoid dependency on individual user accounts
+1. **Shared Locations**: Test and prod use `/Workspace/Shared/` to avoid dependency on individual user accounts
 2. **Service Principals**: Recommended for test/prod authentication instead of personal tokens
 3. **Team Access**: Multiple team members can manage and troubleshoot shared deployments
 4. **Audit Trail**: Centralized location for better monitoring and compliance
@@ -150,11 +158,11 @@ cd src
 databricks bundle run --target dev validation_job
 ```
 
-## Service Principal Setup (Recommended for Production)
+## Service Principal Setup (Recommended for Prod)
 
 ### Why Use Service Principals?
 
-For test and production environments, using service principals instead of personal access tokens provides:
+For test and prod environments, using service principals instead of personal access tokens provides:
 - **Security**: Dedicated authentication without personal account dependencies
 - **Team Access**: Multiple team members can manage the same service principal
 - **Audit Trail**: Clear tracking of automated vs. manual activities
@@ -165,7 +173,7 @@ For test and production environments, using service principals instead of person
 #### **Step 1: Create Service Principal in Databricks**
 1. Go to your Databricks workspace → **Settings** → **Identity and access** → **Service principals**
 2. Click **Add service principal**
-3. Name: `nanba-cicd-test-sp` (for test) or `nanba-cicd-prod-sp` (for production)
+3. Name: `nanba-cicd-test-sp` (for test) or `nanba-cicd-prod-sp` (for prod)
 4. Click **Add**
 
 #### **Step 2: Generate Client Secret**
@@ -187,8 +195,8 @@ Replace personal tokens with service principal credentials:
 - `DATABRICKS_TEST_HOST`: Your test workspace URL
 - `DATABRICKS_TEST_TOKEN`: Service principal secret
 
-**For Production Environment:**
-- `DATABRICKS_PROD_HOST`: Your production workspace URL  
+**For Prod Environment:**
+- `DATABRICKS_PROD_HOST`: Your prod workspace URL  
 - `DATABRICKS_PROD_TOKEN`: Service principal secret
 
 ### Service Principal Best Practices
@@ -198,6 +206,68 @@ Replace personal tokens with service principal credentials:
 3. **Regular Rotation**: Rotate service principal secrets periodically
 4. **Monitoring**: Set up alerts for service principal usage
 5. **Documentation**: Document service principal purposes and permissions
+
+## Semantic Versioning and Commit Standards
+
+### Conventional Commits Required
+This pipeline uses **conventional commits** to automatically determine version numbers:
+
+- `feat:` → Minor version bump (v1.1.0)
+- `fix:` → Patch version bump (v1.0.1)  
+- `feat!:` or `BREAKING CHANGE:` → Major version bump (v2.0.0)
+- `docs:`, `test:`, `chore:` → No release
+
+### Examples
+```bash
+feat: add customer data pipeline          # v1.1.0
+fix: resolve data validation error        # v1.0.1
+feat!: change data schema format          # v2.0.0
+docs: update API documentation             # No release
+```
+
+### Version-Tagged Deployments
+- Prod deployments are **only triggered by semantic version tags**
+- Each prod deployment includes version metadata in job names
+- Git commit SHA and tag information is embedded in Databricks resources
+- Full traceability from code commit to prod deployment
+
+For complete guidelines, see [`devops/semantic-versioning-guide.md`](semantic-versioning-guide.md).
+
+### Commit Message Enforcement
+A **commitlint workflow** automatically validates all commit messages:
+- ✅ Valid: `feat: add data pipeline`, `fix: resolve validation error`
+- ❌ Invalid: `updated code`, `bug fix`, `changes`
+
+**Failed commits will block PR merges** when branch protection is enabled.
+
+## Branch Protection Setup (Recommended)
+
+To enforce commit message standards and prevent invalid commits from reaching main:
+
+### Step 1: Enable Branch Protection
+1. Go to repository **Settings** → **Branches**
+2. Click **Add rule** for `main` branch
+3. Configure the following settings:
+
+### Step 2: Required Status Checks
+Enable these required checks before merging:
+- ✅ **Validate Commit Messages** (from commitlint workflow)
+- ✅ **Validate Databricks Bundle** (from CI/CD workflow)
+- ✅ **Deploy to Development** (from CI/CD workflow)
+
+### Step 3: Additional Protections
+- ✅ **Require pull request reviews before merging**
+- ✅ **Dismiss stale pull request approvals when new commits are pushed**
+- ✅ **Require status checks to pass before merging**
+- ✅ **Require branches to be up to date before merging**
+- ✅ **Restrict pushes that create matching branches** (only admins)
+
+### Step 4: Result
+With branch protection enabled:
+- Invalid commit messages will **fail the commitlint check**
+- PRs cannot be merged until **all commits follow conventional format**
+- Automatic helpful comments guide developers to fix their commits
+- Semantic versioning works reliably with proper commit messages
 
 ## Customization
 
@@ -244,7 +314,7 @@ Replace personal tokens with service principal credentials:
 ## Security Notes
 
 - Never commit access tokens to the repository
-- Use service principals for production deployments
+- Use service principals for prod deployments
 - Regularly rotate access tokens
 - Follow principle of least privilege for workspace permissions
-- Enable audit logging for production workspaces
+- Enable audit logging for prod workspaces

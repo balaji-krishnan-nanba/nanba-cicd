@@ -10,7 +10,7 @@
 # The new pipeline provides:
 # - Databricks Asset Bundle integration
 # - Multi-environment deployment (dev/test/prod)
-# - Manual approval gates for test and production
+# - Manual approval gates for test and prod
 # - Comprehensive testing at each stage
 #
 # Please refer to devops/setup-instructions.md for setup and usage instructions.

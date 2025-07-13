@@ -35,8 +35,36 @@ Instead of blocking all and allowing exceptions, create specific rules for unwan
 **Target branches**: `*` (single level, no slashes)
 **Rules**: ✅ **Restrict creations**
 
-### Option 2: Repository Settings (If Available)
-Some GitHub plans allow repository-level branch naming restrictions in Settings → General → Branch protection rules.
+### Option 2: Branch Protection Rules (Legacy Method)
+Use the older branch protection system to create naming-based restrictions:
+
+#### Steps to Configure:
+1. Navigate to your repository **Settings**
+2. In the "Code and automation" sidebar, click **Branches**  
+3. Click **Add rule**
+4. Configure patterns to block unwanted naming:
+
+**Rule 1: Block develop branches**
+- Branch name pattern: `develop*`
+- ✅ Enable "Restrict pushes that create matching branches"
+- In permissions, add only repository admins (blocks everyone else)
+
+**Rule 2: Block single-word branches**  
+- Branch name pattern: `*` (no slashes)
+- ✅ Enable "Restrict pushes that create matching branches"
+- In permissions, add only repository admins
+
+**Rule 3: Block other patterns**
+- Branch name pattern: `bugfix*` 
+- Branch name pattern: `hotfix*`
+- Branch name pattern: `release*`
+- ✅ Enable "Restrict pushes that create matching branches"
+
+#### Limitations:
+- Requires separate rules for each unwanted pattern
+- Uses `fnmatch` syntax (limited pattern matching)
+- Cannot create "allow only these patterns" rules directly
+- May conflict with newer Rulesets if both are enabled
 
 ### Option 3: CI/CD Enforcement (Fallback)
 If rulesets are insufficient, use the branch cleanup workflow to detect and flag incorrectly named branches.

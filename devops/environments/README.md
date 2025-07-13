@@ -27,14 +27,14 @@ You need to create the following environments in your GitHub repository settings
   - `DATABRICKS_TEST_HOST`: Your test Databricks workspace URL
   - `DATABRICKS_TEST_TOKEN`: Personal access token or service principal token for test
 
-### 3. production Environment
-- **Name**: `production` 
+### 3. prod Environment
+- **Name**: `prod` 
 - **Protection Rules**:
   - ✅ Required reviewers (at least 2 reviewers)
   - ✅ Wait timer: 5 minutes
   - ✅ Restrict to protected branches only
 - **Required Secrets**:
-  - `DATABRICKS_PROD_HOST`: Your production Databricks workspace URL
+  - `DATABRICKS_PROD_HOST`: Your prod Databricks workspace URL
   - `DATABRICKS_PROD_TOKEN`: Personal access token or service principal token for prod
 
 ## Setup Instructions
@@ -43,7 +43,7 @@ You need to create the following environments in your GitHub repository settings
 2. Click "New environment" for each environment above
 3. Configure protection rules as specified
 4. Add the required secrets to each environment
-5. Add reviewers for test and production environments
+5. Add reviewers for test and prod environments
 
 ## Deployment Flow
 

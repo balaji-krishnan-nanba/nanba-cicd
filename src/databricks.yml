@@ -1,8 +1,26 @@
 bundle:
   name: nanba-cicd
+  git:
+    branch: ${var.git_branch}
+    commit: ${var.git_commit}
+    origin_url: ${var.git_origin_url}
 
 include:
   - resources/*.yml
+
+variables:
+  git_branch:
+    description: "Current git branch"
+    default: "unknown"
+  git_commit:
+    description: "Current git commit SHA"
+    default: "unknown"
+  git_origin_url:
+    description: "Git repository origin URL"
+    default: "unknown"
+  deployment_version:
+    description: "Deployment version (semantic version or manual)"
+    default: "dev"
 
 workspace:
   root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
@@ -42,7 +60,7 @@ targets:
     resources:
       jobs:
         smoke_test_job:
-          name: ${bundle.name}-smoke-test-${bundle.target}
+          name: ${bundle.name}-smoke-test-${bundle.target}-${var.deployment_version}
           tasks:
             - task_key: smoke_tests
               notebook_task:

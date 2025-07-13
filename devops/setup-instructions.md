@@ -118,6 +118,35 @@ This CI/CD pipeline uses different deployment strategies for each environment:
 4. **Audit Trail**: Centralized location for better monitoring and compliance
 5. **Disaster Recovery**: Reduced single points of failure
 
+## Workspace Path Configuration
+
+### Environment-Specific Deployment Paths
+
+This CI/CD pipeline uses different deployment strategies for each environment:
+
+#### **Development Environment**
+- **Path**: `/Workspace/Users/${workspace.current_user.userName}/.bundle/nanba-cicd/dev`
+- **Strategy**: User-specific paths for development isolation
+- **Use Case**: Individual developer testing and experimentation
+
+#### **Test Environment** 
+- **Path**: `/Workspace/Shared/.bundle/nanba-cicd/test`
+- **Strategy**: Shared workspace location for team collaboration
+- **Use Case**: Integration testing and team validation
+
+#### **Production Environment**
+- **Path**: `/Workspace/Shared/.bundle/nanba-cicd/prod`
+- **Strategy**: Shared workspace location for production stability
+- **Use Case**: Production deployments with team access and audit trails
+
+### Best Practices for Production
+
+1. **Shared Locations**: Test and production use `/Workspace/Shared/` to avoid dependency on individual user accounts
+2. **Service Principals**: Recommended for test/prod authentication instead of personal tokens
+3. **Team Access**: Multiple team members can manage and troubleshoot shared deployments
+4. **Audit Trail**: Centralized location for better monitoring and compliance
+5. **Disaster Recovery**: Reduced single points of failure
+
 ## Project Structure
 
 ```
@@ -157,6 +186,7 @@ databricks bundle deploy --target dev
 cd src
 databricks bundle run --target dev validation_job
 ```
+
 
 ## Service Principal Setup (Recommended for Prod)
 

@@ -50,52 +50,6 @@ jobs:
         run: |
           databricks bundle validate --target dev
 
-  validate-pr:
-    name: Validate PR
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Databricks CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
-          echo "/home/runner/.databricks/bin" >> $GITHUB_PATH
-
-      - name: Validate bundle configuration
-        working-directory: src
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
-        run: |
-          databricks bundle validate --target dev
-
-      - name: Deploy bundle (dry-run)
-        working-directory: src
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
-        run: |
-          echo "Running deployment validation..."
-          databricks bundle deploy --target dev \
-            --var git_branch="$GITHUB_HEAD_REF" \
-            --var git_commit="$GITHUB_SHA" \
-            --var git_origin_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
-            --dry-run || echo "Dry-run mode not supported, proceeding with validation"
-
-      - name: Check bundle resources
-        working-directory: src
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
-        run: |
-          echo "✅ PR validation passed - bundle is valid and deployable"
 
   deploy-dev:
     name: Deploy to Development

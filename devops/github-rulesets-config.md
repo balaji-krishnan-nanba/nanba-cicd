@@ -10,6 +10,32 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 2. Go to **Settings** → **Rules** → **Rulesets**
 3. Click **New ruleset** → **New branch ruleset**
 
+### Ruleset 0: Branch Creation Restrictions
+**Name**: `Branch Creation Restrictions`
+**Priority**: Highest (this should be the first ruleset created)
+
+**Target branches**:
+- Include by pattern: `**` (all branches)
+
+**Rules to enable**:
+- ✅ **Restrict creations**
+  - This blocks creation of ALL branches by default
+  - Only branches matching the bypass patterns below will be allowed
+
+**Bypass permissions**: 
+- Allow repository admins to bypass (for emergency situations)
+- Allow specific patterns to bypass the creation restriction:
+  - `feature/**`
+  - `fix/**`
+  - `chore/**`
+  - `main`
+
+**Configuration Notes**:
+- This ruleset uses the "restrict by default, allow exceptions" approach
+- Any branch name NOT matching `feature/*`, `fix/*`, or `chore/*` will be blocked
+- Branch creation attempts with invalid names will show an error message
+- This works in combination with the merge strategy rulesets below
+
 ### Ruleset 1: Feature Branch Rules
 **Name**: `Feature Branch Merge Strategy`
 
@@ -116,14 +142,15 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 
 ## Merge Strategy Logic
 
-### Branch Pattern → Merge Method Mapping
+### Branch Pattern → Rules Mapping
 
-| Branch Pattern | Merge Method | Reasoning |
-|---------------|--------------|-----------|
-| `feature/**` | **Squash Merge** | Clean history, group related commits |
-| `fix/**` | **Merge Commit** | Preserve fix context and audit trail |
-| `chore/**` | **Squash Merge** | Clean history for maintenance tasks |
-| `main` | **Protected** | No direct pushes allowed |
+| Branch Pattern | Creation Allowed | Merge Method | Reasoning |
+|---------------|-----------------|--------------|-----------|
+| `feature/**` | ✅ **Allowed** | **Squash Merge** | Clean history, group related commits |
+| `fix/**` | ✅ **Allowed** | **Merge Commit** | Preserve fix context and audit trail |
+| `chore/**` | ✅ **Allowed** | **Squash Merge** | Clean history for maintenance tasks |
+| `main` | ✅ **Allowed** | **Protected** | No direct pushes allowed |
+| `*` (all others) | ❌ **Blocked** | N/A | Only standard naming conventions allowed |
 
 ### Rationale
 
@@ -148,11 +175,13 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 
 ### Step 1: Create Rulesets
 1. Create each ruleset following the configurations above
-2. Apply in order: Main → Feature → Fix → Chore
+2. Apply in order: **Branch Creation Restrictions** → Main → Feature → Fix → Chore
 3. Test with a sample branch of each type
 
 ### Step 2: Validate Configuration
-Create test branches to verify rules:
+Create test branches to verify both creation restrictions and merge strategy rules:
+
+**Valid Branch Creation (should succeed):**
 ```bash
 # Test feature branch
 git checkout -b feature/test-merge-strategy
@@ -165,6 +194,15 @@ git push -u origin fix/test-merge-strategy
 # Test chore branch
 git checkout -b chore/test-merge-strategy  
 git push -u origin chore/test-merge-strategy
+```
+
+**Invalid Branch Creation (should fail):**
+```bash
+# These should be blocked by the creation restriction
+git checkout -b develop/test-branch      # ❌ Should fail
+git checkout -b bugfix/test-branch       # ❌ Should fail  
+git checkout -b hotfix/test-branch       # ❌ Should fail
+git checkout -b random-branch-name       # ❌ Should fail
 ```
 
 ### Step 3: Team Communication
@@ -186,6 +224,12 @@ This merge strategy works with the branch cleanup workflow:
 
 ### Common Issues
 
+**"Branch creation blocked" error**:
+- Error message: "Branch creation is restricted by repository rules"
+- **Solution**: Ensure branch name follows allowed patterns: `feature/*`, `fix/*`, or `chore/*`
+- **Example**: Change `develop/my-feature` to `feature/my-feature`
+- Check that the Branch Creation Restrictions ruleset is configured correctly
+
 **"Merge method not allowed" error**:
 - Check ruleset configuration for the branch pattern
 - Verify branch name matches the expected pattern exactly
@@ -201,6 +245,11 @@ This merge strategy works with the branch cleanup workflow:
 - Verify bypass permissions are correctly configured in ruleset
 - Confirm user has appropriate role (admin/maintain)
 
+**Branch creation works locally but fails on GitHub**:
+- Local git doesn't enforce GitHub rulesets - only GitHub's remote repository does
+- Branches created locally can still be pushed if they follow naming conventions
+- The restriction applies when pushing new branch names to the remote repository
+
 ### Monitoring and Maintenance
 
 1. **Regular Review**: Check ruleset effectiveness monthly
@@ -213,8 +262,8 @@ This merge strategy works with the branch cleanup workflow:
 ### Additional Rules to Consider
 
 **Branch Naming Enforcement**:
-- Add ruleset to require specific branch naming patterns
-- Reject branches not following `feature/`, `fix/`, `chore/` conventions
+- ✅ **Already implemented** with Branch Creation Restrictions ruleset
+- Blocks branches not following `feature/`, `fix/`, `chore/` conventions
 
 **Commit Message Standards**:
 - Enforce conventional commit format
@@ -228,4 +277,13 @@ This merge strategy works with the branch cleanup workflow:
 - Restrict PR size to encourage focused changes
 - Set file count or line change limits
 
-This configuration implements a robust merge strategy that balances code quality, audit requirements, and development efficiency while integrating seamlessly with the existing CI/CD pipeline and branch management workflows.
+## Summary
+
+This configuration implements a comprehensive branch governance system that:
+
+1. **Restricts branch creation** to only `feature/*`, `fix/*`, and `chore/*` patterns
+2. **Enforces specific merge strategies** based on branch type
+3. **Integrates seamlessly** with existing CI/CD pipeline and branch cleanup workflows
+4. **Balances code quality, audit requirements, and development efficiency**
+
+The combination of creation restrictions and merge strategy enforcement ensures consistent, high-quality branch management across the entire development lifecycle.

@@ -82,7 +82,10 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
         run: |
-          databricks bundle deploy --target dev
+          databricks bundle deploy --target dev \
+            --var git_branch="$GITHUB_REF_NAME" \
+            --var git_commit="$GITHUB_SHA" \
+            --var git_origin_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
 
       - name: Run Dev Tests
         working-directory: src
@@ -121,7 +124,10 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_TEST_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TEST_TOKEN }}
         run: |
-          databricks bundle deploy --target test
+          databricks bundle deploy --target test \
+            --var git_branch="$GITHUB_REF_NAME" \
+            --var git_commit="$GITHUB_SHA" \
+            --var git_origin_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
 
       - name: Run Test Suite
         working-directory: src

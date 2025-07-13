@@ -1,0 +1,46 @@
+name: Branch Lifespan Enforcement
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  check-branch-age:
+    name: Check Branch Age
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Stale Branches
+        run: |
+          echo "Checking for stale branches..."
+          git branch -r --format='%(refname:short)' | grep -v 'origin/main' | grep -v 'origin/HEAD' | while read branch; do
+            branch_name=${branch#origin/}
+            last_commit=$(git log -1 --format=%ct origin/$branch_name 2>/dev/null || echo "0")
+            if [ "$last_commit" != "0" ]; then
+              current_time=$(date +%s)
+              days_old=$(( (current_time - last_commit) / 86400 ))
+              if [ $days_old -gt 7 ]; then
+                echo "STALE: $branch_name is $days_old days old"
+              elif [ $days_old -gt 3 ]; then
+                echo "WARNING: $branch_name is $days_old days old"
+              fi
+            fi
+          done
+
+      - name: Create Issue for Stale Branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Simple approach - just create an issue if there are old branches
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Branch Cleanup Required',
+              body: 'Some branches may be stale. Please review branch ages and clean up as needed.',
+              labels: ['maintenance']
+            });

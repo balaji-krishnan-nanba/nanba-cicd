@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Production Smoke Tests
-# MAGIC This notebook runs smoke tests to verify production deployment
+# MAGIC # Prod Smoke Tests
+# MAGIC This notebook runs smoke tests to verify prod deployment
 
 # COMMAND ----------
 
@@ -139,7 +139,7 @@ def test_job_permissions():
 # COMMAND ----------
 
 # Run all smoke tests
-print("🚀 Starting production smoke tests...")
+print("🚀 Starting prod smoke tests...")
 
 tests = [
     ("Cluster Health", test_cluster_health),
@@ -177,5 +177,5 @@ if passed == len(tests):
     print("🎉 All smoke tests passed! Production deployment verified.")
 else:
     print(f"⚠️ {len(failed_tests)} smoke tests failed: {', '.join(failed_tests)}")
-    print("🔍 Please investigate failed tests before proceeding with production workloads.")
+    print("🔍 Please investigate failed tests before proceeding with prod workloads.")
     # Don't fail the deployment for smoke tests, just log warnings

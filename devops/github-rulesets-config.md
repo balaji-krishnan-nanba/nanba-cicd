@@ -10,31 +10,36 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 2. Go to **Settings** → **Rules** → **Rulesets**
 3. Click **New ruleset** → **New branch ruleset**
 
-### Ruleset 0: Branch Creation Restrictions
-**Name**: `Branch Creation Restrictions`
-**Priority**: Highest (this should be the first ruleset created)
+## ⚠️ Important Note About Branch Creation Restrictions
 
-**Target branches**:
-- Include by pattern: `**` (all branches)
+**GitHub Limitation**: Unfortunately, GitHub Rulesets don't currently support pattern-based exclusions for creation restrictions. The "Restrict creations" rule applies to ALL matching branches without the ability to exclude specific patterns.
 
-**Rules to enable**:
-- ✅ **Restrict creations**
-  - This blocks creation of ALL branches by default
-  - Only branches matching the bypass patterns below will be allowed
+**Alternative Approaches**:
 
-**Bypass permissions**: 
-- Allow repository admins to bypass (for emergency situations)
-- Allow specific patterns to bypass the creation restriction:
-  - `feature/**`
-  - `fix/**`
-  - `chore/**`
-  - `main`
+### Option 1: Use Multiple Targeted Rulesets (Recommended)
+Instead of blocking all and allowing exceptions, create specific rules for unwanted patterns:
 
-**Configuration Notes**:
-- This ruleset uses the "restrict by default, allow exceptions" approach
-- Any branch name NOT matching `feature/*`, `fix/*`, or `chore/*` will be blocked
-- Branch creation attempts with invalid names will show an error message
-- This works in combination with the merge strategy rulesets below
+#### Ruleset 0a: Block Common Invalid Patterns
+**Name**: `Block Invalid Branch Patterns`
+**Target branches**: 
+- `develop`
+- `develop/**`
+- `bugfix/**` 
+- `hotfix/**`
+- `release/**`
+
+**Rules**: ✅ **Restrict creations**
+
+#### Ruleset 0b: Block Single Word Branches  
+**Name**: `Block Single Word Branches`
+**Target branches**: `*` (single level, no slashes)
+**Rules**: ✅ **Restrict creations**
+
+### Option 2: Repository Settings (If Available)
+Some GitHub plans allow repository-level branch naming restrictions in Settings → General → Branch protection rules.
+
+### Option 3: CI/CD Enforcement (Fallback)
+If rulesets are insufficient, use the branch cleanup workflow to detect and flag incorrectly named branches.
 
 ### Ruleset 1: Feature Branch Rules
 **Name**: `Feature Branch Merge Strategy`
@@ -144,13 +149,16 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 
 ### Branch Pattern → Rules Mapping
 
-| Branch Pattern | Creation Allowed | Merge Method | Reasoning |
-|---------------|-----------------|--------------|-----------|
+| Branch Pattern | Creation Status | Merge Method | Reasoning |
+|---------------|----------------|--------------|-----------|
 | `feature/**` | ✅ **Allowed** | **Squash Merge** | Clean history, group related commits |
 | `fix/**` | ✅ **Allowed** | **Merge Commit** | Preserve fix context and audit trail |
 | `chore/**` | ✅ **Allowed** | **Squash Merge** | Clean history for maintenance tasks |
 | `main` | ✅ **Allowed** | **Protected** | No direct pushes allowed |
-| `*` (all others) | ❌ **Blocked** | N/A | Only standard naming conventions allowed |
+| `develop/**` | ❌ **Blocked** (Option 1) | N/A | Enforce standard naming |
+| `bugfix/**` | ❌ **Blocked** (Option 1) | N/A | Use `fix/` instead |
+| `hotfix/**` | ❌ **Blocked** (Option 1) | N/A | Use `fix/` instead |
+| Single words | ❌ **Blocked** (Option 1) | N/A | Require descriptive names |
 
 ### Rationale
 
@@ -174,9 +182,15 @@ This document provides step-by-step instructions to configure GitHub Rulesets th
 ## Implementation Steps
 
 ### Step 1: Create Rulesets
-1. Create each ruleset following the configurations above
-2. Apply in order: **Branch Creation Restrictions** → Main → Feature → Fix → Chore
-3. Test with a sample branch of each type
+**For Option 1 (Recommended)**:
+1. Create the invalid pattern blocking rulesets first
+2. Create merge strategy rulesets: Main → Feature → Fix → Chore  
+3. Test with valid and invalid branch patterns
+
+**For Option 3 (CI/CD Enforcement)**:
+1. Create only the merge strategy rulesets
+2. Rely on branch cleanup workflow to detect invalid patterns
+3. Use PR reviews to catch naming violations
 
 ### Step 2: Validate Configuration
 Create test branches to verify both creation restrictions and merge strategy rules:

@@ -1,7 +1,7 @@
 # GitHub Rulesets Configuration for Smart Merge Strategy
 
 ## Overview
-This document provides step-by-step instructions to configure GitHub Rulesets that enforce specific merge strategies based on branch patterns, implementing Method C for Smart Merge Strategy.
+This document provides step-by-step instructions to configure GitHub Rulesets that enforce specific merge strategies based on branch patterns, implementing Method C for Smart Merge Strategy..
 
 ## Ruleset Configuration
 
